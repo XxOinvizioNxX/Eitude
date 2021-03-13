@@ -38,17 +38,21 @@
  * Setup
 */
 #define MPU6050_ADDRESS			0x68
-#define CALIBRATION_N			1000
-#define ACC_FILTER_KOEFF		0.970
+#define CALIBRATION_N			500
+#define ACC_FILTER_KOEFF		0.95
+#define VIBR_STOP_MOVE_THRESH	300
+#define SPEED_ZEROING_FACTOR	0.98
 #define BAUD_RATE				57600
 #define BUFFER_SIZE				512
-#define LUX_FILTER_KOEFF		0.950
+#define LUX_FILTER_KOEFF		0.95
 #define LCD_PRINT_TIME			500
 //#define MAX_LUX				100000
 
 /*
  * System variables
 */
+// Cycle counter
+uint16_t i;
 
 // LCD
 LiquidCrystal lcd(LDC_RS_PIN, LDC_E_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
@@ -71,6 +75,12 @@ uint8_t level_calibration_on;
 int32_t gyro_pitch_cal, gyro_roll_cal, gyro_yaw_cal;
 int32_t acc_x_cal_value, acc_y_cal_value;
 int32_t acc_x_filtered, acc_y_filtered;
+
+// Vibration meter
+int32_t vibration_array[20], avarage_vibration_level, vibration_total_result;
+uint8_t vibration_counter, in_move_flag;
+
+// Speed
 float speed, speed_accumulator;
 int64_t speed_loop_timer;
 
@@ -93,11 +103,15 @@ void setup()
 	// Initialize 16x2 display
 	lcd.begin(16, 2);
 	lcd.print(F(" <-  Eitude  -> "));
-	lcd.setCursor(0, 1);
-	lcd.print(F("Calibration ... "));
 
-	// Setup MPU6050
+	// Wait some time before calibration
+	lcd.setCursor(0, 1);
+	lcd.print(F("  Don't  move!  "));
+	delay(1000);
+
+	// Setup and calibrate MPU6050
 	gyro_setup();
+	gyro_calibration();
 
 	// Done calibration
 	lcd.clear();
@@ -112,6 +126,9 @@ void loop()
 	// Calculate LUX
 	illumination_handler();
 
+	// Check if platform is in move
+	check_vibrations();
+
 	// Calculate speed
 	speed_handler();
 
@@ -120,7 +137,7 @@ void loop()
 
 	// Print current state to LCD every LCD_PRINT_TIME
 	if (millis() - lcd_timer >= LCD_PRINT_TIME) {
-		print_lux_to_lcd();
+		print_to_lcd();
 		lcd_timer = millis();
 	}
 	
@@ -208,21 +225,35 @@ void illumination_handler() {
 }
 
 /*
- * Prints current illumination and lights state to the screen
+ * Prints current state to the screen
 */
-void print_lux_to_lcd() {
+void print_to_lcd() {
 	lcd.setCursor(0, 1);
 
 	// Illumination
-	lcd.print(F("ADC:"));
+	lcd.print(F("L:"));
 	lcd.print((uint16_t)filtered_value);
 
 	// Speed
-	lcd.print(F(" SPD:"));
+	lcd.print(F(" S:"));
 	lcd.print(speed_accumulator, 1);
 
-	// Fill all the line
+	// Fill line
 	lcd.print(F("                "));
+
+	// Light ON flag
+	lcd.setCursor(15, 0);
+	if (digitalRead(LIGHTS_PIN))
+		lcd.print(F("*"));
+	else
+		lcd.print(F("."));
+
+	// Move flag
+	lcd.setCursor(15, 1);
+	if (in_move_flag)
+		lcd.print(F("<"));
+	else
+		lcd.print(F("."));
 }
 
 /*
@@ -231,16 +262,18 @@ void print_lux_to_lcd() {
 void print_buffer_to_lcd() {
 	lcd.setCursor(0, 0);
 
+	// Clear line without last char
+	for (i = 0; i < 15; i++)
+		lcd.print(F(" "));
+	lcd.setCursor(0, 0);
+
 	// Timestamp
 	lcd.print(millis() / 1000);
 	lcd.print(F(": "));
 
 	// Current GCode
-	for (size_t i = 0; i < sofar - 1; i++)
+	for (i = 0; i < sofar - 1; i++)
 		lcd.print(buffer[i]);
-
-	// Fill all the line
-	lcd.print(F("                "));
 }
 
 /*
