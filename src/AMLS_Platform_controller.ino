@@ -18,40 +18,61 @@
 /* 
  * Libraries
 */
+#include <Wire.h>
 #include <LiquidCrystal.h>
 
 /*
  * Pins
 */
-#define LIGHT_S_1_PIN	A0
-#define LIGHT_S_2_PIN	A1
-#define LDC_RS_PIN		2
-#define LDC_E_PIN		3
-#define LCD_D4_PIN		4
-#define LCD_D5_PIN		5
-#define LCD_D6_PIN		6
-#define LCD_D7_PIN		7
-#define LIGHTS_PIN		9
+#define LIGHT_S_1_PIN			A0
+#define LIGHT_S_2_PIN			A1
+#define LDC_RS_PIN				2
+#define LDC_E_PIN				3
+#define LCD_D4_PIN				4
+#define LCD_D5_PIN				5
+#define LCD_D6_PIN				6
+#define LCD_D7_PIN				7
+#define LIGHTS_PIN				9
 
 /*
  * Setup
 */
-#define BAUD_RATE		57600
-#define BUFFER_SIZE		512
-#define FILTER_KOEFF	0.05
-#define LCD_PRINT_TIME	1000
-//#define MAX_LUX			100000
+#define MPU6050_ADDRESS			0x68
+#define CALIBRATION_N			1000
+#define ACC_FILTER_KOEFF		0.970
+#define BAUD_RATE				57600
+#define BUFFER_SIZE				512
+#define LUX_FILTER_KOEFF		0.950
+#define LCD_PRINT_TIME			500
+//#define MAX_LUX				100000
 
 /*
  * System variables
 */
+
+// LCD
 LiquidCrystal lcd(LDC_RS_PIN, LDC_E_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
+uint64_t lcd_timer;
+
+// Serial
 char buffer[BUFFER_SIZE];
 int16_t sofar;
 int16_t command;
+
+// Light sensor
 uint16_t raw_illumination;
-uint64_t lcd_timer;
 float filtered_value;
+
+// MPU6050
+volatile int16_t temperature;
+volatile int16_t acc_x, acc_y, acc_z;
+volatile int16_t gyro_pitch, gyro_roll, gyro_yaw;
+uint8_t level_calibration_on;
+int32_t gyro_pitch_cal, gyro_roll_cal, gyro_yaw_cal;
+int32_t acc_x_cal_value, acc_y_cal_value;
+int32_t acc_x_filtered, acc_y_filtered;
+float speed, speed_accumulator;
+int64_t speed_loop_timer;
 
 /*
  * Initializes the system
@@ -66,9 +87,21 @@ void setup()
 	Serial.begin(BAUD_RATE);
 	delay(200);
 
+	// Initialize I2C
+	Wire.begin();
+
 	// Initialize 16x2 display
 	lcd.begin(16, 2);
 	lcd.print(F(" <-  Eitude  -> "));
+	lcd.setCursor(0, 1);
+	lcd.print(F("Calibration ... "));
+
+	// Setup MPU6050
+	gyro_setup();
+
+	// Done calibration
+	lcd.clear();
+	Serial.print(F(">"));
 }
 
 /*
@@ -79,6 +112,9 @@ void loop()
 	// Calculate LUX
 	illumination_handler();
 
+	// Calculate speed
+	speed_handler();
+
 	// Check serial
 	fill_buffer();
 
@@ -87,6 +123,9 @@ void loop()
 		print_lux_to_lcd();
 		lcd_timer = millis();
 	}
+	
+	// Minimum loop time
+	delayMicroseconds(4000);
 }
 
 /*
@@ -149,6 +188,11 @@ void process_command() {
 		Serial.print(F("S0 L"));
 		Serial.println((uint16_t)filtered_value);
 		break;
+	case 1:
+		// Speed check
+		Serial.print(F("S0 L"));
+		Serial.println(speed_accumulator, 2);
+		break;
 	default:
 		break;
 	}
@@ -160,7 +204,7 @@ void process_command() {
 void illumination_handler() {
 	raw_illumination = analogRead(LIGHT_S_1_PIN) + analogRead(LIGHT_S_2_PIN);
 	raw_illumination /= 2;
-	filtered_value = raw_illumination * FILTER_KOEFF + filtered_value * (1 - FILTER_KOEFF);
+	filtered_value = filtered_value * LUX_FILTER_KOEFF + raw_illumination * (1.0 - LUX_FILTER_KOEFF);
 }
 
 /*
@@ -173,9 +217,9 @@ void print_lux_to_lcd() {
 	lcd.print(F("ADC:"));
 	lcd.print((uint16_t)filtered_value);
 
-	// Lights state
-	lcd.print(F("  LED:"));
-	lcd.print(digitalRead(LIGHTS_PIN) ? F("ON") : F("OFF"));
+	// Speed
+	lcd.print(F(" SPD:"));
+	lcd.print(speed_accumulator, 1);
 
 	// Fill all the line
 	lcd.print(F("                "));
