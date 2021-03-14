@@ -16,8 +16,8 @@ Eitude AMLS Platform Controller © 2021 Pavel Neshumov (Frey Hertz)
 
 This is to be a fully functioning part of the AMLS system from the side of the platform. 
 
-Controller will be operating with such data as its own GPS location, level of illumination around it, its speed and the data that would be sent from the drone which is descripted in _Data packet structure paragraph_ in Liberty-Way Projecta
+Controller will be operating with such data as its own GPS location, level of illumination around it, its speed and the data that would be sent from the drone which is descripted in _Data packet structure paragraph_ in Liberty-Way Project.
 
-So far, this system is able to measure the level of illumination, the speed of the platform, and also turn on/off the backlight
+So far, this system is able to measure the level of illumination, the speed of the platform, and also turn on/off the backlight.
 
 -----------
