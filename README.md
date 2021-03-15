@@ -10,8 +10,10 @@ Eitude AMLS Platform Controller © 2021 Pavel Neshumov (Frey Hertz)
 
 -----------
 
+## AMLS Projects:
+
 - **Liberty-Way Project:** https://github.com/XxOinvizioNxX/Liberty-Way
-- **PX4 UDP Connection:** https://github.com/Draskown/PX4_UDP_Connection 
+- **PX4 UDP Connection Project:** https://github.com/Draskown/PX4_UDP_Connection 
 
 -----------
 
