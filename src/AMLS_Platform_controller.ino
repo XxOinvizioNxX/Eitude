@@ -20,6 +20,7 @@
 */
 #include <Wire.h>
 #include <LiquidCrystal.h>
+#include <Adafruit_NeoPixel.h>
 
 /*
  * Pins
@@ -33,10 +34,12 @@
 #define LCD_D6_PIN				6
 #define LCD_D7_PIN				7
 #define LIGHTS_PIN				9
+#define STATUS_STRIP_PIN		8
 
 /*
  * Setup
 */
+#define STATUS_PIXELS_NUM		3
 #define MPU6050_ADDRESS			0x68
 #define CALIBRATION_N			500
 #define ACC_FILTER_KOEFF		0.95
@@ -48,6 +51,14 @@
 #define LCD_PRINT_TIME			500
 //#define MAX_LUX				100000
 
+// Colors for status
+#define IDLE_COLOR				127, 0, 127
+#define STAB_COLOR				0, 255, 0
+#define LAND_COLOR				0, 255, 255
+#define PREV_COLOR				255, 127, 0
+#define LOST_COLOR				255, 0, 0
+#define DONE_COLOR				127, 255, 127
+
 /*
  * System variables
 */
@@ -57,6 +68,9 @@ uint16_t i;
 // LCD
 LiquidCrystal lcd(LDC_RS_PIN, LDC_E_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 uint64_t lcd_timer;
+
+// NeoPixels
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(STATUS_PIXELS_NUM, STATUS_STRIP_PIN, NEO_GRB + NEO_KHZ800);
 
 // Serial
 char buffer[BUFFER_SIZE];
@@ -92,6 +106,11 @@ void setup()
 	// Define pins mode
 	pinMode(LIGHTS_PIN, OUTPUT);
 	analogReference(EXTERNAL);
+
+	// Init leds strip
+	pixels.begin();
+	pixels.clear();
+	pixels.show();
 
 	// Open serial port
 	Serial.begin(BAUD_RATE);
@@ -209,6 +228,47 @@ void process_command() {
 		// Speed check
 		Serial.print(F("S0 L"));
 		Serial.println(speed_accumulator, 2);
+		break;
+	case 2:
+		// Set status
+		switch ((int8_t)parse_gcode('S', -1))
+		{
+		case 0:
+			// IDLE
+			for (i = 0; i < STATUS_PIXELS_NUM; i++)
+				pixels.setPixelColor(i, IDLE_COLOR);
+			break;
+		case 1:
+			// STAB
+			for (i = 0; i < STATUS_PIXELS_NUM; i++)
+				pixels.setPixelColor(i, STAB_COLOR);
+			break;
+		case 2:
+			// LAND
+			for (i = 0; i < STATUS_PIXELS_NUM; i++)
+				pixels.setPixelColor(i, LAND_COLOR);
+			break;
+		case 3:
+			// PREV
+			for (i = 0; i < STATUS_PIXELS_NUM; i++)
+				pixels.setPixelColor(i, PREV_COLOR);
+			break;
+		case 4:
+			// LOST
+			for (i = 0; i < STATUS_PIXELS_NUM; i++)
+				pixels.setPixelColor(i, LOST_COLOR);
+			break;
+		case 5:
+			// DONE
+			for (i = 0; i < STATUS_PIXELS_NUM; i++)
+				pixels.setPixelColor(i, DONE_COLOR);
+			break;
+		default:
+			// Other
+			pixels.clear();
+			break;
+		}
+		pixels.show();
 		break;
 	default:
 		break;

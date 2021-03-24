@@ -23,6 +23,7 @@ void speed_handler(void) {
 	acc_y_filtered = (float)acc_y_filtered * ACC_FILTER_KOEFF + (float)acc_y * (1.0 - ACC_FILTER_KOEFF);
 
 	speed = acc_x_filtered;
+
 	// Convert acceleration to G
 	speed /= 4096.0;
 	// Convert to m/s^2
