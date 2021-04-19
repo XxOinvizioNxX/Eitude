@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/// <summary>
+/// Calculates speed of the platform
+/// </summary>
 void speed_handler(void) {
 	// Filter accelerations
 	acc_x_filtered = (float)acc_x_filtered * ACC_FILTER_KOEFF + (float)acc_x * (1.0 - ACC_FILTER_KOEFF);
@@ -46,6 +49,9 @@ void speed_handler(void) {
 	}
 }
 
+/// <summary>
+/// Checks vibration level and sets in_move flag
+/// </summary>
 void vibrations(void) {
 	// Calculate the total accelerometer vector.
 	vibration_array[0] = (int32_t)acc_x * (int32_t)acc_x;
