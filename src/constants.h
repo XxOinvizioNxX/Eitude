@@ -26,6 +26,6 @@ const uint32_t MAX_ALLOWED_LOOP_PERIOD PROGMEM = 26000;
 const uint8_t IMU_ADDRESS PROGMEM = 0x68;
 
 // Serial port
-const uint16_t BUFFER_SIZE PROGMEM = 512;
+const uint16_t BUFFER_SIZE PROGMEM = 256;
 
 #endif

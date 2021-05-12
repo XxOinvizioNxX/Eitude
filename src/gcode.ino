@@ -79,6 +79,16 @@ void gcode_handler(void) {
 				ws_leds.setPixelColor(count_var, COLOR_LOST);
 			break;
 		case 5:
+			// TKOF
+			for (count_var = 0; count_var < STATUS_PIXELS_NUM; count_var++)
+				ws_leds.setPixelColor(count_var, COLOR_TKOF);
+			break;
+		case 6:
+			// WAYP
+			for (count_var = 0; count_var < STATUS_PIXELS_NUM; count_var++)
+				ws_leds.setPixelColor(count_var, COLOR_WAYP);
+			break;
+		case 7:
 			// DONE
 			for (count_var = 0; count_var < STATUS_PIXELS_NUM; count_var++)
 				ws_leds.setPixelColor(count_var, COLOR_DONE);
@@ -99,7 +109,16 @@ void gcode_handler(void) {
 		Serial.print(F("S0 A"));
 		Serial.print(SIMULATE_GPS_LAT);
 		Serial.print(F(" O"));
-		Serial.println(SIMULATE_GPS_LON);
+		Serial.print(SIMULATE_GPS_LON);
+		Serial.print(F(" N"));
+		Serial.print(SIMULATE_GPS_SATS_N);
+		Serial.print(F(" F"));
+		Serial.println(SIMULATE_GPS_FIX_T);
+		break;
+	case 8:
+		// Check status
+		Serial.print(F("S"));
+		Serial.println(error);
 		break;
 	default:
 		break;

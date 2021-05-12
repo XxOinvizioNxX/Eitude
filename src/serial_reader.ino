@@ -21,18 +21,21 @@
 void serial_reader(void) {
 	while (Serial.available() > 0) {
 		char c = Serial.read();
-		if (sofar < BUFFER_SIZE - 1) buffer[sofar++] = c;
+		if (sofar < BUFFER_SIZE - 1) {
+			buffer[sofar++] = c;
+		}
+		else {
+			sofar = 0;
+			Serial.flush();
+		}
 		if ((c == '\n') || (c == '\r')) {
 			buffer[sofar] = 0;
 
-			// Check if buffer is not empty
+			// Check if buffer is empty
 			if (sofar < 2) {
 				sofar = 0;
 				break;
 			}
-
-			// Show buffer
-			lcd_print_buffer();
 
 			// Process current command
 			gcode_handler();

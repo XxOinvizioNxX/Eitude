@@ -66,6 +66,9 @@ void setup()
 	// Send ready sign
 	serial_ready();
 
+	// Flush serial port
+	Serial.flush();
+
 	// Reset loop timer
 	loop_timer = micros();
 }

@@ -58,11 +58,13 @@ const float LUX_FILTER_KOEFF PROGMEM = 0.95;
 /*            Simulation            */
 /************************************/
 // Simulate GPS data (L4 command) with this coordinates
-const int32_t SIMULATE_GPS_LAT PROGMEM = 8983273;
-const int32_t SIMULATE_GPS_LON PROGMEM = -79559516;
+const int32_t SIMULATE_GPS_LAT PROGMEM = 8983272;
+const int32_t SIMULATE_GPS_LON PROGMEM = -79559480;
+const uint8_t SIMULATE_GPS_SATS_N PROGMEM = 12;
+const uint8_t SIMULATE_GPS_FIX_T PROGMEM = 3;
 
-// Simulate platform pressure (L3 command) with this coordinates
-const uint32_t SIMULATE_PRESSURE PROGMEM = 103325;
+// Simulate platform pressure (L3 command) with this value
+const uint32_t SIMULATE_PRESSURE PROGMEM = 100780;
 
 
 /*****************************/
@@ -93,6 +95,8 @@ const uint16_t STATUS_PIXELS_NUM PROGMEM = 3;
 #define COLOR_LAND				0, 255, 255
 #define COLOR_PREV				255, 127, 0
 #define COLOR_LOST				255, 0, 0
-#define COLOR_DONE				127, 255, 127
+#define COLOR_TKOF				0, 0, 255
+#define COLOR_WAYP				63, 63, 63
+#define COLOR_DONE				127, 127, 127
 
 #endif

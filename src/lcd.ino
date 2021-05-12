@@ -56,27 +56,6 @@ void lcd_print_state(void) {
 	}
 }
 
-/// <summary>
-/// Prints serial buffer to the display
-/// </summary>
-void lcd_print_buffer(void) {
-	// Start at the 0 row 0 col
-	lcd.setCursor(0, 0);
-
-	// Clear line without last char
-	for (count_var = 0; count_var < 15; count_var++)
-		lcd.print(F(" "));
-	lcd.setCursor(0, 0);
-
-	// Timestamp
-	lcd.print(millis() / 1000);
-	lcd.print(F(": "));
-
-	// Current GCode
-	for (count_var = 0; count_var < sofar - 1; count_var++)
-		lcd.print(buffer[count_var]);
-}
-
 
 /// <summary>
 /// Prints current error state on the LCD
@@ -85,7 +64,7 @@ void lcd_print_error(void) {
 	if (error) {
 		// Fill line
 		lcd.print(F("                "));
-		lcd.setCursor(0, 1);
+		lcd.setCursor(0, 0);
 
 		// Print error
 		lcd.print(F("ERROR: "));
