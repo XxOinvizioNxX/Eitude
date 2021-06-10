@@ -67,13 +67,13 @@ void setup()
 
 	// Done calibration
 	lcd.clear();
-
-	// Send ready sign
-	serial_ready();
-
+	
 	// Flush serial port
 	Serial.flush();
 
+	// Send ready sign
+	serial_ready();
+	
 	// Reset loop timer
 	loop_timer = micros();
 }
